@@ -1,4 +1,4 @@
-const { obtenerJoyas } = require('./consultas')
+const { obtenerJoyas, obtenerJoyasPorFiltros, prepararHATEOAS } = require('./consultas')
 
 const express = require('express');
 const cors = require("cors");
@@ -13,10 +13,28 @@ app.use(morgan("dev"));
 
 app.listen(3000, console.log('Server ON'));
 
-
 app.get("/joyas", async (req, res) => {
-    const queryStrings = req.query
-    const joyas = await obtenerJoyas(queryStrings)
-    res.json(joyas)
-    });
+    const queryStrings = req.query;
+    try {
+        const joyas = await obtenerJoyas(queryStrings);
+        const HATEOAS = prepararHATEOAS(joyas)
+        res.json(HATEOAS);
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener joyas."});
+    }
+});
 
+app.get('/joyas/filtros', async (req, res) => {
+    const queryStrings = req.query;
+    try {
+        const joyas = await obtenerJoyasPorFiltros(queryStrings);
+        res.json(joyas);
+    } catch (error) {
+        res.status(500).json({ error: "Error en la consulta de filtro."});
+    }
+});
+
+app.get("*", (req, res) => {
+    res.status(404).send("Esta ruta no existe");
+});
+        
